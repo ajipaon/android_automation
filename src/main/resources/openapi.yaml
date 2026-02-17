@@ -1,0 +1,388 @@
+openapi: 3.0.3
+info:
+  title: ADB Automation API
+  description: REST API untuk mengelola Job dan Device pada sistem ADB Automation
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:4567
+    description: Local Development Server
+
+tags:
+  - name: Jobs
+    description: Operasi CRUD untuk Job
+  - name: Devices
+    description: Operasi CRUD untuk Device
+
+paths:
+
+  # ─────────────────────────────────────────────
+  # JOBS
+  # ─────────────────────────────────────────────
+
+  /api/jobs:
+    get:
+      tags: [Jobs]
+      summary: Ambil semua job
+      responses:
+        '200':
+          description: List semua job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+    post:
+      tags: [Jobs]
+      summary: Buat job baru
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobRequest'
+      responses:
+        '201':
+          description: Job berhasil dibuat, return ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/jobs/{id}:
+    get:
+      tags: [Jobs]
+      summary: Ambil job berdasarkan ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Data job ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+    put:
+      tags: [Jobs]
+      summary: Update seluruh field job
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/UpdateSuccess'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+    delete:
+      tags: [Jobs]
+      summary: Hapus job berdasarkan ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/DeleteSuccess'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/jobs/{id}/status:
+    patch:
+      tags: [Jobs]
+      summary: Update hanya status job
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [PENDING, RUNNING, DONE, FAILED]
+      responses:
+        '200':
+          $ref: '#/components/responses/UpdateSuccess'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/jobs/status/{status}:
+    get:
+      tags: [Jobs]
+      summary: Filter job berdasarkan status
+      parameters:
+        - name: status
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [PENDING, RUNNING, DONE, FAILED]
+      responses:
+        '200':
+          description: List job dengan status tersebut
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  # ─────────────────────────────────────────────
+  # DEVICES
+  # ─────────────────────────────────────────────
+
+  /api/devices:
+    get:
+      tags: [Devices]
+      summary: Ambil semua device
+      responses:
+        '200':
+          description: List semua device
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+    post:
+      tags: [Devices]
+      summary: Tambah device baru
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceRequest'
+      responses:
+        '201':
+          description: Device berhasil dibuat, return ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/devices/{id}:
+    get:
+      tags: [Devices]
+      summary: Ambil device berdasarkan ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Data device ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags: [Devices]
+      summary: Update seluruh field device
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/UpdateSuccess'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Devices]
+      summary: Hapus device berdasarkan ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/DeleteSuccess'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/devices/connected:
+    get:
+      tags: [Devices]
+      summary: Ambil semua device yang sedang terkoneksi
+      responses:
+        '200':
+          description: List device CONNECTED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /api/devices/status/{status}:
+    get:
+      tags: [Devices]
+      summary: Filter device berdasarkan status
+      parameters:
+        - name: status
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [CONNECTED, NOT_CONNECTED, BUSY]
+      responses:
+        '200':
+          description: List device dengan status tersebut
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/devices/{id}/status:
+    patch:
+      tags: [Devices]
+      summary: Update hanya status device
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                statusDevice:
+                  type: string
+                  enum: [CONNECTED, NOT_CONNECTED, BUSY]
+      responses:
+        '200':
+          $ref: '#/components/responses/UpdateSuccess'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+# ─────────────────────────────────────────────
+# COMPONENTS
+# ─────────────────────────────────────────────
+
+components:
+
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      description: MongoDB ObjectId (24 karakter hex)
+      schema:
+        type: string
+        example: 6990489196334fead948e725
+
+  responses:
+    NotFound:
+      description: Data tidak ditemukan
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    BadRequest:
+      description: Request tidak valid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UpdateSuccess:
+      description: Data berhasil diupdate
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SuccessResponse'
+    DeleteSuccess:
+      description: Data berhasil dihapus
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SuccessResponse'
+
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        code:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: Data tidak ditemukan
+
+    JobRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [PENDING, RUNNING, DONE, FAILED]
+        actionType:
+          type: string
+          example: CLICK
+        appPackage:
+          type: string
+          example: com.example.app
+        appActivity:
+          type: string
+          example: .MainActivity
+        locatorType:
+          type: string
+          example: id
+        locatorValue:
+          type: string
+          example: btn_submit
+        inputText:
+          type: string
+        scrollDirection:
+          type: string
+          enum: [UP, DOWN, LEFT, RIGHT]
+
+    DeviceRequest:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          example: emulator-5554
+        deviceName:
+          type: string
+          example: Pixel 6 Pro
+        model:
+          type: string
+          example: Pixel 6 Pro
+        androidVersion:
+          type: string
+          example: "13"
+        statusDevice:
+          type: string
+          enum: [CONNECTED, NOT_CONNECTED, BUSY]
