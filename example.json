@@ -1,0 +1,69 @@
+{
+  "status": "PENDING",
+  "deviceId": "69917550d653fd69f5dfebea",
+  "appFlow": {
+    "flowId": "flow-telegram-wa-youtube",
+    "flowName": "Social Media Automation Suite",
+    "description": "Kirim pesan Telegram, WhatsApp, buka YouTube tonton video, buka URL YouTube, comment+like+subscribe",
+    "globalConfig": {
+      "retryOnFailure": true,
+      "maxRetry": 2,
+      "screenshotOnError": true,
+      "delayBetweenApps": 3000
+    },
+    "apps": [
+      {
+        "appId": "app-2",
+        "appName": "WhatsApp - Kirim via Nomor",
+        "appPackage": "com.whatsapp",
+        "appActivity": "com.whatsapp.Main",
+        "udid": "emulator-5554",
+        "waitTimeout": 15,
+        "startUrl": "https://wa.me/628122798637?text=Halo%20Ini%20pesan%20otomatis%20dari%20WhatsApp%20bot%20testing.",
+        "steps": [
+          {
+            "stepId": 1,
+            "action": "open_app",
+            "description": "Buka WhatsApp via deep link ke nomor 6281234567890"
+          },
+          {
+            "stepId": 2,
+            "action": "wait",
+            "durationMs": 3000,
+            "description": "Tunggu WhatsApp dan chat room loading"
+          },
+          {
+            "stepId": 3,
+            "action": "screenshot",
+            "filename": "whatsapp_before_send",
+            "description": "Screenshot sebelum kirim pesan"
+          },
+          {
+            "stepId": 4,
+            "action": "click",
+            "locatorStrategy": "id",
+            "locatorValue": "com.whatsapp:id/send",
+            "description": "Klik tombol Send (teks sudah terisi dari URL)"
+          },
+          {
+            "stepId": 5,
+            "action": "wait",
+            "durationMs": 1500
+          },
+          {
+            "stepId": 6,
+            "action": "screenshot",
+            "filename": "whatsapp_pesan_terkirim",
+            "description": "Screenshot bukti pesan terkirim"
+          },
+          {
+            "stepId": 7,
+            "action": "key_press",
+            "keyCode": "HOME",
+            "description": "Kembali ke home screen device"
+          }
+        ]
+      }
+    ]
+  }
+}
