@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appium Code Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+        }
+
+        .panel-header {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px 8px 0 0;
+            border: 1px solid #e0e0e0;
+            border-bottom: none;
+        }
+
+        .panel-header h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .panel-header p {
+            font-size: 12px;
+            color: #666;
+        }
+
+        textarea {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 0 0 8px 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            resize: none;
+            line-height: 1.5;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .controls {
+            padding: 0 30px 30px 30px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .config-group {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .input-group label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .input-group input {
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .auto-detected {
+            background-color: #e8f5e9;
+            border-color: #4caf50 !important;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-convert {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-convert:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-copy {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-copy:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-clear {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease-out;
+            z-index: 1000;
+        }
+
+        .notification.success {
+            background: #28a745;
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+
+        .notification.info {
+            background: #17a2b8;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .info-badge {
+            display: inline-block;
+            background: #17a2b8;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 8px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 1024px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Appium Code Converter</h1>
+            <p>Convert Appium recorder code to JSON flow format - Auto-detect app package & activity</p>
+        </div>
+
+        <div class="content">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Input - Appium Code</h2>
+                    <p>Paste your Appium recorder JavaScript code here</p>
+                </div>
+                <textarea id="inputCode" placeholder="const el1 = mob.findElement(&quot;accessibility id:Absensi Pro&quot;);
+mob.click(el1);
+const el2 = mob.findElement(&quot;id:id.co.solusinegeri.absensipro:id/btn_login&quot;);
+mob.click(el2);
+..."></textarea>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Output - JSON Flow</h2>
+                    <p>Your converted JSON flow will appear here</p>
+                </div>
+                <textarea id="outputJson" readonly placeholder="Converted JSON will appear here..."></textarea>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="config-group">
+                <div class="input-group">
+                    <label for="appName">App Name <span class="info-badge" id="appNameBadge" style="display:none;">AUTO</span></label>
+                    <input type="text" id="appName" placeholder="My App">
+                </div>
+                <div class="input-group">
+                    <label for="appPackage">App Package <span class="info-badge" id="packageBadge" style="display:none;">AUTO</span></label>
+                    <input type="text" id="appPackage" placeholder="com.example.app">
+                </div>
+                <div class="input-group">
+                    <label for="appActivity">App Activity <span class="info-badge" id="activityBadge" style="display:none;">AUTO</span></label>
+                    <input type="text" id="appActivity" placeholder=".MainActivity">
+                </div>
+                <div class="input-group">
+                    <label for="udid">Device UDID</label>
+                    <input type="text" id="udid" placeholder="emulator-5554" value="emulator-5554">
+                </div>
+            </div>
+            <button class="btn btn-convert" onclick="convertCode()">Convert</button>
+            <button class="btn btn-copy" onclick="copyOutput()">Copy JSON</button>
+            <button class="btn btn-clear" onclick="clearAll()">Clear</button>
+        </div>
+    </div>
+
+    <script>
+        // Auto-detect when user pastes or types
+        document.getElementById('inputCode').addEventListener('input', function() {
+            autoDetectAppInfo();
+        });
+
+        function autoDetectAppInfo() {
+            const code = document.getElementById('inputCode').value;
+            
+            // Extract app package from resource IDs
+            const packageMatches = code.match(/id:([a-z][a-z0-9_]*(\.[a-z0-9_]+)+):/gi);
+            
+            if (packageMatches && packageMatches.length > 0) {
+                // Get the most common package
+                const packages = packageMatches.map(match => {
+                    const parts = match.replace('id:', '').replace(':', '').split('/')[0];
+                    return parts;
+                });
+                
+                const packageCount = {};
+                packages.forEach(pkg => {
+                    packageCount[pkg] = (packageCount[pkg] || 0) + 1;
+                });
+                
+                // Get most frequent package
+                const detectedPackage = Object.keys(packageCount).reduce((a, b) => 
+                    packageCount[a] > packageCount[b] ? a : b
+                );
+                
+                // Set package
+                const packageInput = document.getElementById('appPackage');
+                packageInput.value = detectedPackage;
+                packageInput.classList.add('auto-detected');
+                document.getElementById('packageBadge').style.display = 'inline-block';
+                
+                // Try to detect app name from package
+                const appName = getAppNameFromPackage(detectedPackage);
+                if (appName) {
+                    const nameInput = document.getElementById('appName');
+                    nameInput.value = appName;
+                    nameInput.classList.add('auto-detected');
+                    document.getElementById('appNameBadge').style.display = 'inline-block';
+                }
+                
+                // Try to detect activity (common patterns)
+                const activityGuess = guessActivity(detectedPackage);
+                if (activityGuess) {
+                    const activityInput = document.getElementById('appActivity');
+                    activityInput.value = activityGuess;
+                    activityInput.classList.add('auto-detected');
+                    document.getElementById('activityBadge').style.display = 'inline-block';
+                }
+                
+                showNotification('Auto-detected: ' + detectedPackage, 'info');
+            }
+        }
+
+        function getAppNameFromPackage(packageName) {
+            // Known app packages mapping
+            const knownApps = {
+                'com.whatsapp': 'WhatsApp',
+                'org.telegram.messenger': 'Telegram',
+                'com.google.android.youtube': 'YouTube',
+                'com.instagram.android': 'Instagram',
+                'com.facebook.katana': 'Facebook',
+                'com.twitter.android': 'Twitter',
+                'com.google.android.gm': 'Gmail',
+                'com.spotify.music': 'Spotify',
+                'com.netflix.mediaclient': 'Netflix',
+                'com.google.android.apps.maps': 'Google Maps',
+                'id.co.solusinegeri.absensipro': 'Absensi Pro'
+            };
+            
+            if (knownApps[packageName]) {
+                return knownApps[packageName];
+            }
+            
+            // Try to extract from package name
+            const parts = packageName.split('.');
+            const lastPart = parts[parts.length - 1];
+            return lastPart.charAt(0).toUpperCase() + lastPart.slice(1);
+        }
+
+        function guessActivity(packageName) {
+            // Known activities mapping
+            const knownActivities = {
+                'com.whatsapp': 'com.whatsapp.Main',
+                'org.telegram.messenger': 'org.telegram.messenger.DefaultIcon',
+                'com.google.android.youtube': 'com.google.android.youtube.HomeActivity',
+                'com.instagram.android': 'com.instagram.mainactivity.MainActivity',
+                'com.facebook.katana': 'com.facebook.katana.LoginActivity',
+                'com.twitter.android': 'com.twitter.android.StartActivity',
+                'com.google.android.gm': 'com.google.android.gm.ConversationListActivityGmail',
+                'id.co.solusinegeri.absensipro': 'id.co.solusinegeri.absensipro.MainActivity'
+            };
+            
+            if (knownActivities[packageName]) {
+                return knownActivities[packageName];
+            }
+            
+            // Common patterns
+            return packageName + '.MainActivity';
+        }
+
+        function parseAppiumCode(code) {
+            const lines = code.split('\n').filter(line => line.trim());
+            const steps = [];
+            let stepId = 1;
+
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                // Parse findElement
+                if (line.includes('mob.findElement')) {
+                    const nextLine = i + 1 < lines.length ? lines[i + 1].trim() : '';
+                    
+                    // Extract variable name
+                    const varMatch = line.match(/const\s+(\w+)\s*=/);
+                    const varName = varMatch ? varMatch[1] : null;
+
+                    // Extract locator strategy and value
+                    let locatorStrategy = '';
+                    let locatorValue = '';
+                    let description = '';
+
+                    if (line.includes('accessibility id:')) {
+                        locatorStrategy = 'accessibility_id';
+                        const match = line.match(/accessibility id:([^"]+)"/);
+                        locatorValue = match ? match[1].trim() : '';
+                        description = `Klik element: ${locatorValue}`;
+                    } else if (line.includes('"id:')) {
+                        locatorStrategy = 'id';
+                        const match = line.match(/"id:([^"]+)"/);
+                        locatorValue = match ? match[1].trim() : '';
+                        // Extract readable description from ID
+                        const idParts = locatorValue.split('/');
+                        const elementName = idParts.length > 1 ? idParts[1].replace(/_/g, ' ') : locatorValue;
+                        description = `Klik ${elementName}`;
+                    } else if (line.includes('-android uiautomator:')) {
+                        locatorStrategy = 'uiautomator';
+                        const match = line.match(/-android uiautomator:(.+)\)"/);
+                        if (match) {
+                            locatorValue = match[1].trim();
+                            
+                            // Try to extract resource ID from UiSelector
+                            const resourceIdMatch = locatorValue.match(/resourceId\("([^"]+)"\)/);
+                            if (resourceIdMatch) {
+                                const resourceId = resourceIdMatch[1];
+                                const idParts = resourceId.split('/');
+                                const elementName = idParts.length > 1 ? idParts[1].replace(/_/g, ' ') : 'element';
+                                description = `Klik ${elementName}`;
+                            } else {
+                                description = `Klik element menggunakan UIAutomator`;
+                            }
+                        }
+                    } else if (line.includes('xpath:')) {
+                        locatorStrategy = 'xpath';
+                        const match = line.match(/xpath:([^"]+)"/);
+                        locatorValue = match ? match[1].trim() : '';
+                        
+                        // Try to extract text from xpath
+                        const textMatch = locatorValue.match(/@text='([^']+)'/);
+                        if (textMatch) {
+                            description = `Klik "${textMatch[1]}"`;
+                        } else {
+                            description = `Klik element via xpath`;
+                        }
+                    }
+
+                    // Check if next line is a click action
+                    if (nextLine.includes('mob.click') && varName && nextLine.includes(varName)) {
+                        steps.push({
+                            stepId: stepId++,
+                            action: 'click',
+                            locatorStrategy: locatorStrategy,
+                            locatorValue: locatorValue,
+                            description: description
+                        });
+                        i++; // Skip the next line since we've processed it
+                    }
+                } 
+                // Parse direct click without variable
+                else if (line.includes('mob.click') && !line.includes('(el')) {
+                    steps.push({
+                        stepId: stepId++,
+                        action: 'click',
+                        description: 'Klik element'
+                    });
+                }
+                // Parse input/sendKeys
+                else if (line.includes('mob.sendKeys') || line.includes('mob.type')) {
+                    const match = line.match(/["'](.+)["']/);
+                    const text = match ? match[1] : '';
+                    steps.push({
+                        stepId: stepId++,
+                        action: 'clear_and_input',
+                        inputText: text,
+                        description: `Input text: ${text}`
+                    });
+                }
+                // Parse wait
+                else if (line.includes('mob.pause') || line.includes('wait')) {
+                    const match = line.match(/(\d+)/);
+                    const duration = match ? parseInt(match[1]) : 1000;
+                    steps.push({
+                        stepId: stepId++,
+                        action: 'wait',
+                        durationMs: duration,
+                        description: `Tunggu ${duration}ms`
+                    });
+                }
+                // Parse scroll
+                else if (line.includes('mob.scroll')) {
+                    steps.push({
+                        stepId: stepId++,
+                        action: 'scroll',
+                        scrollDirection: 'down',
+                        description: 'Scroll ke bawah'
+                    });
+                }
+            }
+
+            // Add wait steps between actions for stability
+            const stepsWithWaits = [];
+            steps.forEach((step, index) => {
+                stepsWithWaits.push(step);
+                if ((step.action === 'click' || step.action === 'clear_and_input') && index < steps.length - 1) {
+                    stepsWithWaits.push({
+                        stepId: step.stepId + 0.5,
+                        action: 'wait',
+                        durationMs: 1000,
+                        description: 'Tunggu loading'
+                    });
+                }
+            });
+
+            // Renumber steps
+            stepsWithWaits.forEach((step, index) => {
+                step.stepId = index + 1;
+            });
+
+            return stepsWithWaits;
+        }
+
+        function convertCode() {
+            const inputCode = document.getElementById('inputCode').value;
+            const appName = document.getElementById('appName').value;
+            const appPackage = document.getElementById('appPackage').value;
+            const appActivity = document.getElementById('appActivity').value;
+            const udid = document.getElementById('udid').value;
+
+            if (!inputCode.trim()) {
+                showNotification('Please paste Appium code first!', 'error');
+                return;
+            }
+
+            if (!appPackage.trim() || !appActivity.trim()) {
+                showNotification('App package and activity are required!', 'error');
+                return;
+            }
+
+            try {
+                const steps = parseAppiumCode(inputCode);
+
+                const flow = {
+                    flowId: `flow-${Date.now()}`,
+                    flowName: appName || 'Automated Test',
+                    description: `Automated test flow for ${appName || appPackage}`,
+                    globalConfig: {
+                        retryOnFailure: true,
+                        maxRetry: 2,
+                        screenshotOnError: true,
+                        delayBetweenApps: 3000
+                    },
+                    apps: [
+                        {
+                            appId: 'app-1',
+                            appName: appName || appPackage,
+                            appPackage: appPackage,
+                            appActivity: appActivity,
+                            udid: udid,
+                            waitTimeout: 15,
+                            steps: steps
+                        }
+                    ]
+                };
+
+                document.getElementById('outputJson').value = JSON.stringify(flow, null, 2);
+                showNotification('Code converted successfully!', 'success');
+            } catch (error) {
+                showNotification('Error converting code: ' + error.message, 'error');
+                console.error(error);
+            }
+        }
+
+        function copyOutput() {
+            const outputJson = document.getElementById('outputJson');
+            if (!outputJson.value) {
+                showNotification('Nothing to copy!', 'error');
+                return;
+            }
+            outputJson.select();
+            document.execCommand('copy');
+            showNotification('JSON copied to clipboard!', 'success');
+        }
+
+        function clearAll() {
+            document.getElementById('inputCode').value = '';
+            document.getElementById('outputJson').value = '';
+            document.getElementById('appName').value = '';
+            document.getElementById('appPackage').value = '';
+            document.getElementById('appActivity').value = '';
+            
+            // Remove auto-detected styling
+            document.querySelectorAll('.auto-detected').forEach(el => {
+                el.classList.remove('auto-detected');
+            });
+            document.querySelectorAll('.info-badge').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            showNotification('Cleared!', 'success');
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideIn 0.3s ease-out reverse';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Example code for demo
+        document.getElementById('inputCode').value = `const el1 = mob.findElement("accessibility id:Absensi Pro");
+mob.click(el1);
+const el2 = mob.findElement("id:id.co.solusinegeri.absensipro:id/btn_login");
+mob.click(el2);
+const el3 = mob.findElement("id:id.co.solusinegeri.absensipro:id/btn_view_all");
+mob.click(el3);
+const el4 = mob.findElement("-android uiautomator:new UiSelector().resourceId(\\"id.co.solusinegeri.absensipro:id/image\\").instance(0)");
+mob.click(el4);
+const el5 = mob.findElement("id:id.co.solusinegeri.absensipro:id/btn_add");
+mob.click(el5);`;
+
+        // Auto-detect on page load
+        autoDetectAppInfo();
+    </script>
+</body>
+</html>
